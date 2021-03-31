@@ -1,0 +1,299 @@
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Scanner;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+
+public class LightsOut extends JFrame implements ActionListener {
+	private int row;
+	private int col;
+	private int depth;
+	private ArrayList<String> rFile = new ArrayList<>();
+	private JButton[][] gameButtons;
+
+	public static void main(String[] args) {
+		LightsOut light = new LightsOut();
+		light.setVisible(true);
+
+	}
+
+	public LightsOut() {
+		readFile();
+		pieces();
+		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+		// Sets title and size of the JFrame.
+		setTitle("Lights Out");
+		setSize(500, 500);
+
+		JPanel mainPanel = new JPanel();
+
+		mainPanel.setLayout(new BorderLayout());
+
+		int[][] layoutMatrix = initialMatrix();
+
+		// Buttons
+		JPanel buttonPanel = new JPanel();
+		gameButtons = new JButton[getRow()][getCol()];
+		buttonPanel.setLayout(new GridLayout(getRow(), getCol()));
+
+		for (int i = 0; i < getRow(); i++) {
+			for (int j = 0; j < getCol(); j++) {
+
+				JButton button = new JButton();
+				gameButtons[i][j] = button;
+				button.setName("" + i + j);
+				button.setBackground(Color.BLACK);
+
+				int state = layoutMatrix[i][j];
+				if (state == 1) // changes color according to state
+				{
+					backgroundColor(button);
+				} else if (state == 2) {
+					backgroundColor(button);
+					backgroundColor(button);
+				} else if (state == 3) {
+					backgroundColor(button);
+					backgroundColor(button);
+					backgroundColor(button);
+				}
+
+				button.addActionListener(this);
+				buttonPanel.add(button);
+			}
+		}
+
+		mainPanel.add(buttonPanel, "Center");
+
+		setContentPane(mainPanel);
+	}
+
+	public void readFile() {
+		ArrayList<String> result = new ArrayList<>();
+
+		try {
+			File level = new File("10.txt");
+			Scanner s = new Scanner(level);
+
+			while (s.hasNextLine()) {
+				result.add(s.nextLine());
+			}
+			s.close();
+		} catch (FileNotFoundException e) {
+			System.out.println("An error occurred.");
+			e.printStackTrace();
+		}
+		setrFile(result);
+	}
+
+	private int[][] initialMatrix() {
+		ArrayList<String> fileArray = getrFile();
+		String[] result = fileArray.get(1).split(",");
+		int nrow = 0;
+		int ncolumns = result[0].length();
+		for (String element : result) {
+			nrow++;
+			System.out.println(element);
+		}
+		setRow(nrow);
+		setCol(ncolumns);
+		setDepth(Integer.parseInt(fileArray.get(0)));
+		System.out.println("rows " + getRow() + " columns " + getCol() + " Depth " + getDepth());
+		String initialState = fileArray.get(1).replaceAll(",", "");
+
+		int[][] layoutMatrix = new int[nrow][ncolumns];
+		int count = 0;
+		for (int i = 0; i < nrow; i++) {
+			for (int j = 0; j < ncolumns; j++) {
+				char n = initialState.charAt(count);
+				layoutMatrix[i][j] = Character.getNumericValue(n);
+				count++;
+			}
+		}
+		return layoutMatrix;
+
+	}
+
+	private void pieces() {
+		ArrayList<String> fileArray = getrFile();
+		String[] p = fileArray.get(2).split(" "); // each piece
+		ArrayList<String[][]> availablePieces= new ArrayList<>();
+
+		for (String element : p) {
+			// find out nr of rows and columns
+			String[] pState = element.split(",");
+			int nrow = pState.length;
+			int ncolumns = pState[0].length();
+			System.out.println("\nrows " + nrow + " columns " + ncolumns);
+
+			// place states inside matrix
+			String sp = element.replaceAll(",", "");// state inside the piece
+			int count = 0;
+			String[][] pieceMatrix = new String[nrow][ncolumns];
+			for (int i = 0; i < nrow; i++) {
+				for (int j = 0; j < ncolumns; j++) {
+					pieceMatrix[i][j] = String.valueOf(sp.charAt(count));
+					count++;
+				}
+			}
+		availablePieces.add(pieceMatrix);
+		}
+	}
+
+	/**
+	 * This method is used whenever a button is clicked.
+	 */
+	@Override
+	public void actionPerformed(ActionEvent e) {
+
+		JButton button = (JButton) e.getSource(); // get clicked button
+
+		String location = button.getName(); // gets the name of the current
+											// button
+
+		char colChar = location.charAt(0); // gets the char character a position
+											// 0 of the button name.
+		char rowChar = location.charAt(1); // gets the char character a position
+											// 1 of the button name.
+		int col = Character.getNumericValue(colChar);
+		int row = Character.getNumericValue(rowChar);
+
+		// temporary buttons for the adjacent locations
+		// next to the selected button.
+		JButton tempSelected = new JButton(); 
+		JButton tempTop = new JButton(); 
+		JButton tempLeft = new JButton();
+		JButton tempRight = new JButton(); 
+		JButton tempBottom = new JButton(); 
+
+		tempSelected = gameButtons[col][row]; // gets the current button
+												// selected and stores it in the
+												// temp.
+		backgroundColor(tempSelected); // calls the backgroundColor method to
+										// change the color of the button.
+
+		// each button is attempted, but if it exceeds the Array, then it is
+		// caught and nothing is done.
+		try {
+			tempTop = gameButtons[col - 1][row]; // get the button that is above
+													// the selected button and
+													// stores it in temp.
+			backgroundColor(tempTop); // calls the backgroundColor method to
+										// change the color of the button.
+		} catch (ArrayIndexOutOfBoundsException i) {
+
+		}
+
+		try {
+			tempLeft = gameButtons[col][row - 1]; // get the button that is left
+													// to the selected button
+													// and stores it in temp.
+			backgroundColor(tempLeft); // calls the backgroundColor method to
+										// change the color of the button.
+		} catch (ArrayIndexOutOfBoundsException i) {
+
+		}
+		try {
+			tempRight = gameButtons[col][row + 1]; // get the button that is
+													// right to the selected
+													// button and stores it in
+													// temp.
+			backgroundColor(tempRight); // calls the backgroundColor method to
+										// change the color of the button.
+		} catch (ArrayIndexOutOfBoundsException i) {
+
+		}
+		try {
+			tempBottom = gameButtons[col + 1][row]; // get the button that is
+													// below the selected button
+													// and stores it in temp.
+			backgroundColor(tempBottom); // calls the backgroundColor method to
+											// change the color of the button.
+		} catch (ArrayIndexOutOfBoundsException i) {
+
+		}
+
+	}
+
+	/**
+	 * Changes the color of the button sent in as a parameter to either yellow
+	 * or black, depending on what the current color of the parameter is.
+	 * 
+	 * @param b
+	 *            JButton object.
+	 */
+	private void backgroundColor(JButton b) {
+		switch (depth) {
+		case 2:
+			if (b.getBackground() == Color.BLACK) {
+				b.setBackground(Color.YELLOW);
+			} else {
+				b.setBackground(Color.BLACK);
+			}
+			break;
+		case 3:
+			if (b.getBackground() == Color.BLACK) {
+				b.setBackground(Color.YELLOW);
+			} else if (b.getBackground() == Color.YELLOW) {
+				b.setBackground(Color.RED);
+			} else
+				b.setBackground(Color.BLACK);
+
+			break;
+		case 4:
+			if (b.getBackground() == Color.BLACK) {
+				b.setBackground(Color.YELLOW);
+			} else if (b.getBackground() == Color.YELLOW) {
+				b.setBackground(Color.RED);
+			} else if (b.getBackground() == Color.RED) {
+				b.setBackground(Color.GREEN);
+			} else
+				b.setBackground(Color.BLACK);
+			break;
+
+		}
+
+	}
+
+	public ArrayList<String> getrFile() {
+		return rFile;
+	}
+
+	public void setrFile(ArrayList<String> rFile) {
+		this.rFile = rFile;
+	}
+
+	public int getRow() {
+		return row;
+	}
+
+	public void setRow(int row) {
+		this.row = row;
+	}
+
+	public int getCol() {
+		return col;
+	}
+
+	public void setCol(int col) {
+		this.col = col;
+	}
+
+	public int getDepth() {
+		return depth;
+	}
+
+	public void setDepth(int depth) {
+		this.depth = depth;
+	}
+}
