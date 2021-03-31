@@ -1,5 +1,6 @@
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -20,6 +21,9 @@ public class LightsOut extends JFrame implements ActionListener {
 	private int depth;
 	private ArrayList<String> rFile = new ArrayList<>();
 	private JButton[][] gameButtons;
+	private ArrayList<String[][]> availablePieces = new ArrayList<>();
+	private ArrayList<String> pieceDim = new ArrayList<>();
+	private int nextPiece;
 
 	public static void main(String[] args) {
 		LightsOut light = new LightsOut();
@@ -37,7 +41,6 @@ public class LightsOut extends JFrame implements ActionListener {
 		setSize(500, 500);
 
 		JPanel mainPanel = new JPanel();
-
 		mainPanel.setLayout(new BorderLayout());
 
 		int[][] layoutMatrix = initialMatrix();
@@ -76,13 +79,15 @@ public class LightsOut extends JFrame implements ActionListener {
 		mainPanel.add(buttonPanel, "Center");
 
 		setContentPane(mainPanel);
+
+		nextPiece();
 	}
 
 	public void readFile() {
 		ArrayList<String> result = new ArrayList<>();
 
 		try {
-			File level = new File("10.txt");
+			File level = new File("01.txt");
 			Scanner s = new Scanner(level);
 
 			while (s.hasNextLine()) {
@@ -127,14 +132,13 @@ public class LightsOut extends JFrame implements ActionListener {
 	private void pieces() {
 		ArrayList<String> fileArray = getrFile();
 		String[] p = fileArray.get(2).split(" "); // each piece
-		ArrayList<String[][]> availablePieces= new ArrayList<>();
 
 		for (String element : p) {
 			// find out nr of rows and columns
 			String[] pState = element.split(",");
 			int nrow = pState.length;
 			int ncolumns = pState[0].length();
-			System.out.println("\nrows " + nrow + " columns " + ncolumns);
+			pieceDim.add("" + nrow + ncolumns);
 
 			// place states inside matrix
 			String sp = element.replaceAll(",", "");// state inside the piece
@@ -146,8 +150,30 @@ public class LightsOut extends JFrame implements ActionListener {
 					count++;
 				}
 			}
-		availablePieces.add(pieceMatrix);
+			availablePieces.add(pieceMatrix);
 		}
+		setNextPiece(0);
+	}
+
+	private void nextPiece() {
+		ArrayList<String[][]> p = getAvailablePieces();
+		String[][] p2 = p.get(getNextPiece());
+		char rowChar = pieceDim.get(nextPiece).charAt(0); // get n of rows in
+															// piece
+		char colChar = pieceDim.get(nextPiece).charAt(1); // get n of columns in
+															// piece
+		int col = Character.getNumericValue(colChar);
+		int row = Character.getNumericValue(rowChar);
+
+		System.out.println("-------PIECE---------");
+		for (int i = 0; i < row; i++) {
+
+			for (int j = 0; j < col; j++) {
+				System.out.print(p2[i][j]);
+			}
+			System.out.println("\n");
+		}
+
 	}
 
 	/**
@@ -158,80 +184,65 @@ public class LightsOut extends JFrame implements ActionListener {
 
 		JButton button = (JButton) e.getSource(); // get clicked button
 
-		String location = button.getName(); // gets the name of the current
-											// button
+		String location = button.getName(); // gets the name of the current button
 
-		char colChar = location.charAt(0); // gets the char character a position
-											// 0 of the button name.
-		char rowChar = location.charAt(1); // gets the char character a position
-											// 1 of the button name.
+		char colChar = location.charAt(1);
+		char rowChar = location.charAt(0);
 		int col = Character.getNumericValue(colChar);
 		int row = Character.getNumericValue(rowChar);
+		
+		if (getNextPiece() < availablePieces.size()-1) {
+			if (Character.getNumericValue(pieceDim.get(nextPiece).charAt(0)) - 1 + row < getRow()
+					&& Character.getNumericValue(pieceDim.get(nextPiece).charAt(1)) - 1 + col < getCol()) {
 
-		// temporary buttons for the adjacent locations
-		// next to the selected button.
-		JButton tempSelected = new JButton(); 
-		JButton tempTop = new JButton(); 
-		JButton tempLeft = new JButton();
-		JButton tempRight = new JButton(); 
-		JButton tempBottom = new JButton(); 
+				// temporary buttons for the adjacent locations
+				// next to the selected button.
+				// JButton tempSelected = new JButton();
+				JButton tempTop = new JButton();
+				JButton tempLeft = new JButton();
+				JButton tempRight = new JButton();
+				JButton tempBottom = new JButton();
 
-		tempSelected = gameButtons[col][row]; // gets the current button
-												// selected and stores it in the
-												// temp.
-		backgroundColor(tempSelected); // calls the backgroundColor method to
-										// change the color of the button.
+				// tempSelected = gameButtons[col][row]; 
+				backgroundColor(gameButtons[col][row]);
+				
+				
+				try {
+					tempTop = gameButtons[col - 1][row]; 
+					backgroundColor(tempTop);
+				} catch (ArrayIndexOutOfBoundsException i) {
 
-		// each button is attempted, but if it exceeds the Array, then it is
-		// caught and nothing is done.
-		try {
-			tempTop = gameButtons[col - 1][row]; // get the button that is above
-													// the selected button and
-													// stores it in temp.
-			backgroundColor(tempTop); // calls the backgroundColor method to
-										// change the color of the button.
-		} catch (ArrayIndexOutOfBoundsException i) {
+				}
 
+				try {
+					tempLeft = gameButtons[col][row - 1];
+					backgroundColor(tempLeft);
+				} catch (ArrayIndexOutOfBoundsException i) {
+
+				}
+				try {
+					tempRight = gameButtons[col][row + 1]; 
+					backgroundColor(tempRight);
+				} catch (ArrayIndexOutOfBoundsException i) {
+
+				}
+				try {
+					tempBottom = gameButtons[col + 1][row]; 
+					backgroundColor(tempBottom); 
+				} catch (ArrayIndexOutOfBoundsException i) {
+
+				}
+
+				setNextPiece(getNextPiece() + 1);
+				nextPiece();
+			} else {
+				System.out.println("Piece out of bounds!");
+			}
+		} else {
+			System.out.println("No more pieces");
 		}
-
-		try {
-			tempLeft = gameButtons[col][row - 1]; // get the button that is left
-													// to the selected button
-													// and stores it in temp.
-			backgroundColor(tempLeft); // calls the backgroundColor method to
-										// change the color of the button.
-		} catch (ArrayIndexOutOfBoundsException i) {
-
-		}
-		try {
-			tempRight = gameButtons[col][row + 1]; // get the button that is
-													// right to the selected
-													// button and stores it in
-													// temp.
-			backgroundColor(tempRight); // calls the backgroundColor method to
-										// change the color of the button.
-		} catch (ArrayIndexOutOfBoundsException i) {
-
-		}
-		try {
-			tempBottom = gameButtons[col + 1][row]; // get the button that is
-													// below the selected button
-													// and stores it in temp.
-			backgroundColor(tempBottom); // calls the backgroundColor method to
-											// change the color of the button.
-		} catch (ArrayIndexOutOfBoundsException i) {
-
-		}
-
 	}
 
-	/**
-	 * Changes the color of the button sent in as a parameter to either yellow
-	 * or black, depending on what the current color of the parameter is.
-	 * 
-	 * @param b
-	 *            JButton object.
-	 */
 	private void backgroundColor(JButton b) {
 		switch (depth) {
 		case 2:
@@ -296,4 +307,21 @@ public class LightsOut extends JFrame implements ActionListener {
 	public void setDepth(int depth) {
 		this.depth = depth;
 	}
+
+	public int getNextPiece() {
+		return nextPiece;
+	}
+
+	public void setNextPiece(int nextPiece) {
+		this.nextPiece = nextPiece;
+	}
+
+	public ArrayList<String[][]> getAvailablePieces() {
+		return availablePieces;
+	}
+
+	public void setAvailablePieces(ArrayList<String[][]> availablePieces) {
+		this.availablePieces = availablePieces;
+	}
+
 }
