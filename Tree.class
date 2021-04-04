@@ -1,0 +1,55 @@
+import java.util.ArrayList;
+
+public class Tree {
+	private Board b;
+	private Pieces p;
+	private String[][] nextBoardState;
+	TreeNode<String> tn;
+
+	public Tree() {
+		b = new Board();
+		p = new Pieces();
+
+		createTree();
+	}
+
+	public void createTree() {
+
+		nextBoardState = b.initialMatrix();
+		int boardRow = b.getRow();
+		int boardCol = b.getCol();
+
+		int count = 0;
+		int npieces = p.availablePieces.size();
+
+		System.out.println("npieces " + npieces);
+		tn = new TreeNode<String>("root");
+
+		ArrayList<TreeNode<String>> previousNodes = new ArrayList<>();
+		previousNodes.add(tn);
+		TreeNode<String> nextNode = tn;
+
+		while (true) {
+
+			for (int a = 0; a < npieces; a++) { // go through pieces
+				String[][] np = p.nextPiece();
+
+				String[] s = p.getPlacements().get(a); // get possible positions for that piece
+				int len = s.length; // number of possible placements
+
+				TreeNode<String> temp = null;
+				previousNodes.clear();
+				for (int b = 0; b < len; b++) {
+					temp = nextNode.addChild(s[b]);
+					System.out.println("add node " + s[b]);
+					previousNodes.add(temp);
+
+				}
+				System.out.println("level " + temp.getLevel());
+				nextNode = temp;
+
+			}
+		}
+	}
+
+}
