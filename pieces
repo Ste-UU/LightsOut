@@ -1,0 +1,273 @@
+import java.util.ArrayList;
+
+import javax.swing.JButton;
+
+public class Pieces {
+
+	private ReadFile f;
+	private Board b;
+	private int row;
+	private int col;
+	public ArrayList<String[][]> availablePieces;
+	private int nextPieceNum;
+	private ArrayList<String> pieceDim;
+	private ArrayList<String[]> placements;
+	private String[][] nextBoardState;
+
+	public Pieces() {
+		f = new ReadFile();
+		b = new Board();
+		nextBoardState = b.initialMatrix();
+		nextPieceNum = 0;
+		pieceDim = new ArrayList<>();
+		availablePieces = new ArrayList<>();
+		placements = new ArrayList<>();
+		pieces();
+		findSolution01();
+	}
+
+	private void pieces() {
+		String[] p = f.getPieces().split(" "); // each piece
+
+		for (String element : p) {
+			// find out nr of rows and columns
+			String[] pState = element.split(",");
+			int ncol = pState[0].length();
+			int nrow = 0;
+			for (String e : pState) {
+				nrow++;
+			}
+			pieceDim.add("" + nrow + ncol);
+			// place states inside matrix
+			String sp = element.replaceAll(",", "");// state inside the piece
+			int count = 0;
+			String[][] pieceMatrix = new String[nrow][ncol];
+			for (int i = 0; i < nrow; i++) {
+				for (int j = 0; j < ncol; j++) {
+					pieceMatrix[i][j] = String.valueOf(sp.charAt(count));
+					count++;
+				}
+			}
+			availablePieces.add(pieceMatrix);
+			nextPiece();
+		}
+
+	}
+
+	// return list of possible placement of current piece in the board
+	public String[] possiblePlacement() {
+
+		int rowCount = b.getRow() - getRow() + 1;
+		int colCount = b.getCol() - getCol() + 1;
+
+		int nposs = rowCount * colCount;
+		String[] possible = new String[nposs];
+		int count = 0;
+		for (int i = 0; i < rowCount; i++) {
+			for (int j = 0; j < colCount; j++) {
+
+				possible[count] = ("(" + i + "," + j + ")");
+				count++;
+			}
+		}
+
+		placements.add(possible);
+		return possible;
+	}
+
+	// Returns next piece available
+	private String[][] nextPiece() {
+		char rowChar = pieceDim.get(nextPieceNum).charAt(0); // get n of rows in piece
+		char colChar = pieceDim.get(nextPieceNum).charAt(1); // get n of columns in piece
+		setCol(Character.getNumericValue(colChar));
+		setRow(Character.getNumericValue(rowChar));
+		String[][] p = availablePieces.get(getNextPieceNum());
+
+		System.out.println("-------NEXT PIECE---------");
+		String printable = "";
+		for (int i = 0; i < getRow(); i++) {
+			for (int j = 0; j < getCol(); j++) {
+				printable = printable + (p[i][j]);
+			}
+			printable = printable + "\n";
+		}
+		System.out.println(printable);
+		possiblePlacement();
+		nextPieceNum++;
+		return p;
+
+	}
+
+	private void findSolution01() {
+
+		int p01 = placements.get(0).length;
+		int p02 = placements.get(1).length;
+		int p03 = placements.get(2).length;
+		int p04 = placements.get(3).length;
+		int p05 = placements.get(4).length;
+		int p06 = placements.get(5).length;
+
+		System.out.println("lens " + p01 + " " + p02 + " " + p03 + " " + p04 + " " + p05 + " " + p06);
+		int count = 0;
+
+		placeInBoard(availablePieces.get(0), placements.get(0)[0], 0);
+		placeInBoard(availablePieces.get(1), placements.get(1)[0], 1);
+		placeInBoard(availablePieces.get(2), placements.get(2)[0], 2);
+		placeInBoard(availablePieces.get(3), placements.get(3)[0], 3);
+		placeInBoard(availablePieces.get(4), placements.get(4)[0], 4);
+		placeInBoard(availablePieces.get(5), placements.get(5)[0], 5);
+		placeInBoard(availablePieces.get(6), placements.get(6)[0], 6);
+
+		isWon();
+
+		int brow = b.getRow();
+		int bcol = b.getCol();
+
+		// a for for each piece
+		for (int a = 0; a < placements.get(0).length; a++) {
+			for (int b = 0; b < placements.get(1).length; b++) {
+				for (int c = 0; c < placements.get(2).length; c++) {
+					for (int d = 0; d < placements.get(3).length; d++) {
+						for (int e = 0; e < placements.get(4).length; e++) {
+							for (int g = 0; g < placements.get(5).length; g++) {
+								for (int h = 0; h < placements.get(6).length; h++) {
+									System.out.println(" try n: " + count);
+									System.out.println("Solution : " + placements.get(0)[a] + placements.get(1)[b]
+											+ placements.get(2)[c] + placements.get(3)[d] + placements.get(4)[e]
+													+ placements.get(5)[g]+ placements.get(6)[h]);
+									placeInBoard(availablePieces.get(0), placements.get(0)[a], 0);
+									placeInBoard(availablePieces.get(1), placements.get(1)[b], 1);
+									placeInBoard(availablePieces.get(2), placements.get(2)[c], 2);
+									placeInBoard(availablePieces.get(3), placements.get(3)[d], 3);
+									placeInBoard(availablePieces.get(4), placements.get(4)[e], 4);
+									placeInBoard(availablePieces.get(5), placements.get(5)[g], 5);
+									placeInBoard(availablePieces.get(6), placements.get(6)[h], 6);
+									count++;
+
+									String printable = "";
+									for (int i = 0; i < brow; i++) {
+										for (int j = 0; j < bcol; j++) {
+											printable = printable + (nextBoardState[i][j]);
+										}
+										printable = printable + "\n";
+									}
+									System.out.println(printable);
+
+									isWon();
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+	}
+
+	private void placeInBoard(String[][] piece, String place, int pieceN) {
+		String[][] board = nextBoardState;
+
+		char rowChar = pieceDim.get(pieceN).charAt(0);
+		char colChar = pieceDim.get(pieceN).charAt(1);
+		setCol(Character.getNumericValue(colChar));
+		setRow(Character.getNumericValue(rowChar));
+
+		// get placement position
+		char posRow = place.charAt(1);
+		char posCol = place.charAt(3);
+		int posR = Character.getNumericValue(posRow);
+		int posC = Character.getNumericValue(posCol);
+		for (int i = 0; i < getRow(); i++) {
+			for (int j = 0; j < getCol(); j++) {
+				if (piece[i][j].equals("X")) {
+					nextBoardState[i + posR][j + posC] = backgroundSymbol(board[i + posR][j + posC]);
+
+				}
+			}
+		}
+		
+		String printablePiece = "";
+		for (int i = 0; i < getRow(); i++) {
+			for (int j = 0; j < getCol(); j++) {
+				printablePiece = printablePiece + (piece[i][j]);
+			}
+			printablePiece = printablePiece + "\n";
+		}
+		System.out.println(printablePiece);
+
+		String printable = "";
+		for (int i = 0; i < b.getRow(); i++) {
+			for (int j = 0; j < b.getCol(); j++) {
+				printable = printable + (nextBoardState[i][j]);
+			}
+			printable = printable + "\n";
+		}
+		System.out.println(printable);
+	}
+
+	private String backgroundSymbol(String sym) {
+		String newSym = new String();
+		if (sym.equals("1")) {
+			newSym = "0";
+		} else {
+			newSym = "1";
+		}
+		return newSym;
+
+	}
+
+	private boolean isWon() {
+		boolean won = false;
+		int space = b.getRow() * b.getCol();
+
+		int count = 0;
+		for (String b[] : nextBoardState) {
+			for (String c : b) {
+				if (c.equals("0")) {
+					count++;
+				}
+			}
+		}
+		System.out.println("empty spaces : " + count);
+		if (count == space) {
+			System.out.println("You did it!");
+			won = true;
+
+		}
+
+		return won;
+	}
+
+	public int getNextPieceNum() {
+		return nextPieceNum;
+	}
+
+	public void setNextPieceNum(int nextPieceNum) {
+		this.nextPieceNum = nextPieceNum;
+	}
+
+	public int getRow() {
+		return row;
+	}
+
+	public void setRow(int row) {
+		this.row = row;
+	}
+
+	public int getCol() {
+		return col;
+	}
+
+	public void setCol(int col) {
+		this.col = col;
+	}
+
+	public ArrayList<String[]> getPlacements() {
+		return placements;
+	}
+
+	public void setPlacements(ArrayList<String[]> placements) {
+		this.placements = placements;
+	}
+
+}
