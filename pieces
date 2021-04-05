@@ -130,7 +130,6 @@ public class Pieces {
 		int bcol = b.getCol();
 		int count = 0;
 		
-		nextBoardState=b.getStartState();
 	// a for for each piece
 		for (int a = 0; a < placements.get(0).length; a++) {
 			for (int b = 0; b < placements.get(1).length; b++) {
@@ -144,7 +143,7 @@ public class Pieces {
 											+ placements.get(2)[c] + placements.get(3)[d] + placements.get(4)[e]
 													+ placements.get(5)[g]+ placements.get(6)[h]);
 									
-									
+									nextBoardState=startBoardState;
 									String printable = "";
 									for (int i = 0; i < brow; i++) {
 										for (int j = 0; j < bcol; j++) {
@@ -152,7 +151,7 @@ public class Pieces {
 										}
 										printable = printable + "\n";
 									}
-									System.out.println("board before changes" + printable);
+									System.out.println("board before changes\n" + printable);
 									
 									placeInBoard(availablePieces.get(0), placements.get(0)[a], 0);
 									placeInBoard(availablePieces.get(1), placements.get(1)[b], 1);
@@ -172,7 +171,7 @@ public class Pieces {
 										}
 										printable2 = printable2 + "\n";
 									}
-									System.out.println("board after changes" + printable2);
+									System.out.println("board after changes\n" + printable2);
 
 							isWon();
 								}
@@ -183,9 +182,6 @@ public class Pieces {
 			}
 		}
 		
-		
-		
-
 		
 		String printable3 = "";
 		for (int i = 0; i < brow; i++) {
